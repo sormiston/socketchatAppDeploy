@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const http = require('http');
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 const socket = require('socket.io');
 const Filter = require('bad-words');
 const { generateMessage, generateLocationMessage } = require('./utils/messages.js');
@@ -20,21 +20,27 @@ io.on('connection', (socket) => {
 
   socket.on('join', ({ username, room }, callback) => {
     const { error, user } = addUser({ id: socket.id, username, room });
-    
+
     if (error) {
       return callback(error);
     }
 
     socket.join(user.room);
 
-    io.to(socket.id).emit('message', generateMessage('Admin', `Welcome to ${user.room}!`));
+    io.to(socket.id).emit(
+      'message',
+      generateMessage('Admin', `Welcome to ${user.room}!`)
+    );
     socket.broadcast
       .to(user.room)
-      .emit('message', generateMessage('Admin', `${user.username} has joined the room!`));
+      .emit(
+        'message',
+        generateMessage('Admin', `${user.username} has joined the room!`)
+      );
     io.to(user.room).emit('roomData', {
       room: user.room,
       users: getUsersInRoom(user.room)
-    })
+    });
     callback();
   });
 
@@ -68,12 +74,12 @@ io.on('connection', (socket) => {
     if (user) {
       io.to(user.room).emit(
         'message',
-        generateMessage('Admin',`${user.username} has left the room!`)
+        generateMessage('Admin', `${user.username} has left the room!`)
       );
       io.to(user.room).emit('roomData', {
         room: user.room,
         users: getUsersInRoom(user.room)
-      })
+      });
     }
   });
 });
